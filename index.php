@@ -12,7 +12,7 @@ $config = array(
   'template' => "template.inc",
 
   # Name of root entry in header
-  'homeName' => "MP3 Web Browser with HTML5 Player",
+  'homeName' => "lunet web player",
 
   # Array of regular expression (regexp) matches for files/directories to hide
   'hideItems' => array("/^lost\+found/", "/^\./"),
