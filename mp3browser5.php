@@ -1,12 +1,12 @@
 <?php
 
 class MP3Browser5 {
-  
+
   var $path, $homeName, $streamLib, $template, $charset, $securePath, $hideItems;
 
   /**
    * @param array $config Associative array with configuration
-   */  
+   */
   function MP3Browser5($config) {
     if ($config['debug']) {
       ini_set('error_reporting', E_ALL);
@@ -21,9 +21,9 @@ class MP3Browser5 {
       $this->show_fatal_error("The \$config['template'] \"{$config['template']}\" isn't readable");
     }
     session_start();
-    
-    $this->resolve_config($config);    
-    $this->workaround_missing_functions();    
+
+    $this->resolve_config($config);
+    $this->workaround_missing_functions();
     $this->streamLib = new StreamLib();
   }
 
@@ -58,17 +58,17 @@ class MP3Browser5 {
     if (!function_exists('mb_substr')) {
       $message .= "Warning: Your PHP installation lacks the Multibyte String Functions extension<br>\n";
       function mb_substr($str, $start, $length = 1024, $encoding = false) {
-        return substr($str, $start, $length);      
+        return substr($str, $start, $length);
       }
       function mb_convert_case($str, $mode, $encoding = false) {
-        return ucwords($str);      
+        return ucwords($str);
       }
       function mb_convert_encoding($entry , $toEncoding = null, $fromEncoding = null) {
         return utf8_encode($entry);
       }
       function mb_strlen($str, $encoding = false) {
-        return strlen($str);      
-      }  
+        return strlen($str);
+      }
     }
     if (!function_exists('normalizer_normalize')) {
       $message .= "Warning: Your PHP installation lacks the Internationalization Functions extension<br>\n";
@@ -92,7 +92,7 @@ class MP3Browser5 {
     echo "<html><body text=red>ERROR: $message</body></html>";
     exit(0);
   }
-  
+
   /**
    * Display requested page, or deliver ajax content.
    */
@@ -101,8 +101,8 @@ class MP3Browser5 {
 	if (is_file($this->path->full)) {
       $this->streamLib->stream_file_auto($this->path->full);
 	  exit(0); // Exits
-    } 
-	
+    }
+
     if (isset($_GET['content'])) {
       $this->show_content($this->path->full); // Exits
     }
@@ -114,32 +114,32 @@ class MP3Browser5 {
     print preg_replace($search, $replace, $template);
     exit(0);
   }
-			  	
+
   /**
    * Content for a page (JSON).  Exits.
    */
   function show_content($fullPath) {
-      $entries = $this->list_folder($fullPath, $this->hideItems); 
-      $byInitial = $this->items_by_initial($entries); 
-	  $content = $this->html_folder($byInitial); 
+      $entries = $this->list_folder($fullPath, $this->hideItems);
+      $byInitial = $this->items_by_initial($entries);
+	  $content = $this->html_folder($byInitial);
 
       $result = array();
 	  $result['itemtitle'] = $this->html_itemtitle();
-	  $result['content'] = "<ul class='playlist' id='playlist'>" . $content . "</ul>"; 
+	  $result['content'] = "<ul class='playlist' id='playlist'>" . $content . "</ul>";
 	  $result['cover'] = $this->html_cover();
       $result['breadcrumb'] = $this->html_breadcrumb();
-	  
+
       if (!empty($this->path->relative)) {
         $result['title'] = $this->homeName .": ". $this->path->relative;
       } else {
         $result['title'] = $this->homeName;
       }
       $result['error'] = Logger::pop();
-      
+
       print $this->json_encode($result);
       exit(0);
   }
-   
+
   /**
    * @return string myplayer for Bar-UI playlists (HTML).
    */
@@ -187,11 +187,11 @@ class MP3Browser5 {
 					<div class='sm2-playlist-wrapper'>
 						<ul id='userPlaylist' class='sm2-playlist-bd'>
 						</ul>
-					</div> 
+					</div>
 				</div>
 			</div>";
    }
-  
+
   /**
    * Simple JSON encoder.
    * @param array $array Array to encode
@@ -207,7 +207,7 @@ class MP3Browser5 {
     }
     return "{\n" . implode($json, ",\n") . "\n}";
   }
-  
+
   /**
    * Format music folder content as HTML.
    *
@@ -223,10 +223,10 @@ class MP3Browser5 {
 				$entry .= "";
 				$item = @ $group[$row];
 				if (is_object($item)) {
-					$entry .= $item->show_link(); 
-				} 
+					$entry .= $item->show_link();
+				}
 				$entry .= "";
-			}  
+			}
 			$output .= $entry;
 		}
 	}
@@ -269,9 +269,9 @@ class MP3Browser5 {
       }
     }
     $folderHandle->close();
-	
+
 	natcasesort($items);
-	
+
 	return $items;
   }
 
@@ -282,16 +282,16 @@ class MP3Browser5 {
   function html_cover() {
     $link = $this->path->cover_image();
     if (!empty($link)) {
-		return "<a href=javascript:addAlbum()><img class=cover src=\"$link\"></a>"; 
+		return "<a href=javascript:addAlbum()><img class=cover src=\"$link\"></a><br /><a href=javascript:addAlbum()>add album</a>";
     }
-    return "";
+    return "<a href=javascript:addAlbum()>add album</a>";
   }
 
    /**
    * @return string Formatted HTML with Home icon
    */
   function html_linkedtitle() {
-    return "<a href=\"javascript:changeDir('')\" ><img class=icon src='images/home.png'></a>"; 
+    return "<a href=\"javascript:changeDir('')\" ><img class=icon src='images/home.png'></a>";
   }
 
   /**
@@ -314,7 +314,7 @@ class MP3Browser5 {
 	$output = implode($items, "&nbsp;&raquo;&nbsp;");
 	return $output;
   }
-  
+
   /**
    * @return string Formatted HTML with bread crumbs for folder
    */
@@ -332,7 +332,7 @@ class MP3Browser5 {
       $encodedPath = Util::path_encode($currentPath);
       $displayItem = Util::convert_to_utf8($parts[$i], $this->charset);
 
-	  if ($i < count($parts)) { 
+	  if ($i < count($parts)) {
         $encodedPath = Util::js_url($encodedPath);
 		$items[] = "<a href=\"javascript:changeDir('$encodedPath')\" ><img class=icon src='images/level.png'></a>";
       }
@@ -345,7 +345,7 @@ class MP3Browser5 {
 	$output = implode("&nbsp;", $items);
     return $output;
   }
-   
+
   /**
    * Checks if $entry has .mp3
    *
@@ -429,7 +429,7 @@ class Path {
    * Try to resolve a safe path.
    */
   function Path($rootPath, $securePath) {
-    
+
     if (!empty($rootPath) && !is_dir($rootPath)) {
       Logger::log("The \$config['path'] \"$rootPath\" isn't readable");
       return;
@@ -437,13 +437,13 @@ class Path {
       $this->directFileAccess = true;
       $rootPath = getcwd();
     }
-    
+
     $relPath = "";
     if (isset($_GET['path'])) {
       $getPath = stripslashes($_GET['path']);
       # Remove " (x22) and \ (x5c) and everything before ascii x20
       $getPath = Util::strip($getPath);
-      $getPath = preg_replace(array("|%5c|", "|/\.\./|", "|/\.\.$|", "|^[/]*\.\.|"), 
+      $getPath = preg_replace(array("|%5c|", "|/\.\./|", "|/\.\.$|", "|^[/]*\.\.|"),
                               array("", "", "", ""), $getPath);
       $getPath = trim($getPath, "/");
       if (is_readable("$rootPath/$getPath")) {
@@ -456,7 +456,7 @@ class Path {
     # Avoid funny paths
     $realFullPath = realpath($fullPath);
     $realRootPath = realpath($rootPath);
-    
+
     if (($securePath && $realRootPath != substr($realFullPath, 0, strlen($realRootPath)))
          || !(is_dir($fullPath) || is_file($fullPath))) {
        $relPath = "";
@@ -492,7 +492,7 @@ class Url {
   var $root = NULL;     # e.g. http://mysite.com
   var $relative = NULL; # e.g. mp3browser5
   var $full = NULL;     # e.g. http://mysite.com/mp3browser5
-  
+
   /**
    * Resolve the current URL into $root, $relative and $full.
    * @param string $rootUrl The input URL
@@ -508,7 +508,7 @@ class Url {
       }
       $this->root = trim($rootUrl, '/');
     }
-	
+
     $this->relative = Util::pathinfo_basename($_SERVER['SCRIPT_NAME']);
     $this->full = $this->root . "/" . $this->relative;
   }
@@ -535,12 +535,12 @@ class Item {
   var $path;
 
   function Item($item, $charset, $folderCovers, $path) {
-    $this->item = $item;  
+    $this->item = $item;
     $this->charset = $charset;
     $this->folderCovers = $folderCovers;
     $this->path = $path;
-  } 
-  
+  }
+
   function url_path() {
     if (empty($this->urlPath)) {
       $this->urlPath = Util::path_encode($this->path->relative . "/" . $this->item);
@@ -549,15 +549,15 @@ class Item {
   }
 
   function js_url_path() {
-    return Util::js_url($this->url_path());    
+    return Util::js_url($this->url_path());
   }
-  
+
   function display_item() {
     $displayItem = Util::word_wrap($this->item, $this->charset);
     $displayItem = Util::convert_to_utf8($displayItem, $this->charset);
     return $displayItem;
   }
-  
+
   function show_link() {
     if (empty($this->item)) {
       return "&nbsp;";
@@ -567,7 +567,7 @@ class Item {
       return $this->file_link();
     }
   }
-  
+
   function dir_link() {
     global $num; $num = 0;  //Counter of album songs
 	$image = $this->show_folder_cover($this->item);
@@ -578,14 +578,14 @@ class Item {
 	if (!empty ($image)) { // album folder
 		$enlace = "<div class=discs >$image"; // Thumb cover
 		$enlace .= "<li style='border:none'><a class=disctitle href=javascript:changeDir('$jsurl') >$item</a></li></div>"; // album title and link
-		
+
 	}	else {	 // directory folder
 		$enlace = "<li><a href=javascript:changeDir('$jsurl') ><img class=foldericon src=images/folder.png></a>";
-		$enlace .= "<a style='width:100%' class='enlace' href=javascript:changeDir('$jsurl') >$item</a></li>"; 
+		$enlace .= "<a style='width:100%' class='enlace' href=javascript:changeDir('$jsurl') >$item</a></li>";
 	}
 	return $enlace;
   }
-  
+
   function file_link() {
 	global $num; $num++; //Counter of album songs
     $link = Util::play_url($this->url_path());
@@ -598,13 +598,13 @@ class Item {
 	$enlace .= "<a class='songtitle'>$item</a>";
 	// Download
 	$enlace .= "<a href=javascript:downCancion(\"{$link}\") ><img class=addicon src=images/download.png></a></li>";
-	return $enlace;	
+	return $enlace;
   }
-    
+
   function direct_link($urlPath) {
     return Util::path_encode($urlPath, false);
   }
-  
+
   function show_folder_cover($addedPath) {
     $image = "";
     if ($this->folderCovers) {
@@ -616,7 +616,7 @@ class Item {
       }
     }
     return $image;
-  }  
+  }
 }
 
 /**
@@ -629,7 +629,7 @@ class Util {
 	public static function js_url($url) {
 		return preg_replace("/%([0-9a-f]{2})/i", "%25\\1", $url);
 	}
-  
+
   /**
    * Encode a fairly readable path for the URL.
    */
@@ -641,16 +641,16 @@ class Util {
 			$replace[] = "+";
 		}
 		if (!empty($fromCharset)) $path = Util::convert_to_utf8($path, $fromCharset);
-		return preg_replace($search, $replace, rawurlencode($path)); 
+		return preg_replace($search, $replace, rawurlencode($path));
 	}
-  
+
   /**
    * Play the URL
    */
 	public static function play_url($urlPath) {
 		return "index.php?path=" . $urlPath;
 	}
- 
+
     public static function strip($str) {
 		return preg_replace('/[^\x20-\x21\x23-\x5b\x5d-\xff]/', "", $str);
 	}
@@ -735,7 +735,7 @@ class StreamLib {
      $this->readfile_chunked($file);
      exit(0);
   }
-  
+
   /**
    * @see http://no.php.net/manual/en/function.readfile.php#54295
    */
@@ -743,7 +743,7 @@ class StreamLib {
     $chunksize = 1 * (1024 * 1024); // how many bytes per chunk
     $buffer = "";
     $cnt = 0;
-    
+
     $handle = fopen($filename, "rb");
     if ($handle === false) {
       return false;
